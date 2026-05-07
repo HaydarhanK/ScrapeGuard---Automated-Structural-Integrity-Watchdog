@@ -1,0 +1,1 @@
+"""ScrapeGuard — Configuration package."""

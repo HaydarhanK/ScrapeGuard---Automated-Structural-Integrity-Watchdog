@@ -1,0 +1,50 @@
+{
+  "targets": [
+    {
+      "name": "hacker_news_top",
+      "url": "https://news.ycombinator.com/",
+      "selectors": {
+        "title": {
+          "css": "span.titleline > a",
+          "type": "str",
+          "required": true
+        },
+        "score": {
+          "css": "span.score",
+          "type": "str",
+          "required": false
+        }
+      },
+      "schedule_minutes": 60
+    },
+    {
+      "name": "example_domain",
+      "url": "https://example.com/",
+      "selectors": {
+        "heading": {
+          "css": "h1",
+          "type": "str",
+          "required": true
+        },
+        "description": {
+          "css": "p",
+          "type": "str",
+          "required": true
+        }
+      },
+      "schedule_minutes": 120
+    },
+    {
+      "name": "python_org_latest_news",
+      "url": "https://www.python.org/",
+      "selectors": {
+        "latest_news_title": {
+          "css": "div.blog-widget a",
+          "type": "str",
+          "required": true
+        }
+      },
+      "schedule_minutes": 180
+    }
+  ]
+}

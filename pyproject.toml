@@ -1,0 +1,12 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "scrapeguard"
+version = "1.0.0"
+description = "Automated Structural Integrity Watchdog"
+requires-python = ">=3.11"
+
+[tool.setuptools.packages.find]
+include = ["config*", "src*"]

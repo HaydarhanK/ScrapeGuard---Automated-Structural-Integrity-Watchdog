@@ -1,0 +1,51 @@
+# ===========================
+# ScrapeGuard .gitignore
+# ===========================
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+eggs/
+*.manifest
+*.spec
+
+# --- Virtual Environments ---
+venv/
+env/
+.env/
+.venv/
+
+# --- Logs (runtime generated) ---
+logs/
+
+# --- IDE / Editor ---
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.project
+.classpath
+.settings/
+
+# --- OS Files ---
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# --- Pytest / Coverage ---
+.pytest_cache/
+htmlcov/
+.coverage
+coverage.xml
+
+# --- Misc ---
+*.bak
+*.tmp
+*.log

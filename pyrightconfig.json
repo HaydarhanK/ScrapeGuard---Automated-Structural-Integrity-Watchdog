@@ -1,0 +1,8 @@
+{
+    "include": ["src", "config", "tests"],
+    "extraPaths": [
+        "c:\\Users\\HAYDARHAN KİRAZLI\\OneDrive\\Desktop\\scrapeguardproject"
+    ],
+    "pythonVersion": "3.11",
+    "reportMissingImports": true
+}
