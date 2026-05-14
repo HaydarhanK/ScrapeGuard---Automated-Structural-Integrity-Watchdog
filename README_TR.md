@@ -42,6 +42,7 @@
 | **Streamlit** | 1.30+ | Etkileşimli web panosu |
 | **Schedule** | 1.2+ | Hafif görev zamanlayıcı |
 | **pytest** | 8.0+ | Test çerçevesi |
+| **pytest-mock** | 3.12+ | pytest için mock yardımcıları |
 | **responses** | 0.25+ | Testler için HTTP yanıt simülasyonu |
 
 ---
@@ -50,23 +51,32 @@
 
 ```
 ScrapeGuard/
+├── app.py                    # Streamlit panosu (salt okunur görüntüleyici)
+├── main_engine.py            # Arka plan orkestratörü / zamanlayıcı
+├── run_dashboard.py          # Kök başlatıcı — PYTHONPATH ayarlar & Streamlit'i çalıştırır
 ├── config/
+│   ├── __init__.py
 │   ├── targets.json          # Hedef URL'ler, CSS seçiciler, tip kuralları
 │   └── settings.py           # Genel yapılandırma sabitleri
 ├── src/
+│   ├── __init__.py
 │   ├── core/
+│   │   ├── __init__.py
 │   │   ├── scraper.py        # HTTP çekme + CSS çıkarım motoru
 │   │   ├── validator.py      # Pydantic doğrulama kontrol noktası
 │   │   └── logger.py         # Loguru rotasyon/saklama kurulumu
-│   ├── schemas/
-│   │   └── base.py           # Dinamik Pydantic model fabrikası
-│   ├── app.py                # Streamlit panosu (salt okunur görüntüleyici)
-│   └── main_engine.py        # Arka plan orkestratörü / zamanlayıcı
+│   └── schemas/
+│       ├── __init__.py
+│       └── base.py           # Dinamik Pydantic model fabrikası
 ├── tests/
+│   ├── __init__.py
 │   ├── test_scraper.py       # Scraper birim testleri
 │   └── test_validator.py     # Doğrulayıcı birim testleri
 ├── logs/                     # Otomatik oluşturulur, git-ignored
+├── .env                      # Ortam değişkenleri (git-ignored)
 ├── .gitignore
+├── pyproject.toml            # Paket meta verisi & derleme yapılandırması
+├── pyrightconfig.json        # IDE desteği için tip denetleyici ayarları
 ├── requirements.txt
 ├── README.md                 # İngilizce dokümantasyon
 └── README_TR.md              # Bu dosya
@@ -78,6 +88,7 @@ ScrapeGuard/
 |---|---|
 | `main_engine.py` | Bağımsız zamanlayıcı — arka planda tarama döngülerini çalıştırır |
 | `app.py` | Salt görüntüleyici — diskten JSON sonuçlarını ve log dosyalarını okur |
+| `run_dashboard.py` | Kök başlatıcı — Streamlit için doğru PYTHONPATH ayarını sağlar |
 | `validator.py` | Scraper çıktısı ↔ dinamik Pydantic modelleri arasında köprü |
 | `base.py` | `targets.json`'dan çalışma zamanında Pydantic modelleri üreten fabrika |
 
@@ -103,7 +114,7 @@ Scraper → Ham Dict → Tip Dönüşümü → Dinamik Pydantic Model → Sonuç
 ```
 
 ### 4. Ayrık Mimari
-Motor (`main_engine.py`) sonuçları `latest_results.json` dosyasına yazar. Panel (`app.py`) yalnızca bu dosyayı okur. Bu, arayüzün ağ G/Ç işlemlerinde asla bloklanmamasını sağlar.
+Motor (`main_engine.py`) sonuçları `latest_results.json` dosyasına yazar. Panel (`app.py`) yalnızca bu dosyayı okur. Her iki dosya da proje kök dizininde bulunur. Özel bir başlatıcı (`run_dashboard.py`), tüm `config.*` ve `src.*` içe aktarımlarının doğru çözümlenmesi için gerekli `PYTHONPATH` ayarını otomatik olarak yapar.
 
 ### 5. Log Yönetimi
 Loguru, **10 MB rotasyon** ve **7 gün saklama** ile yapılandırılmıştır. Eski loglar `.zip` olarak sıkıştırılır. `enqueue=True` ile iş parçacığı güvenliği sağlanır.
@@ -136,20 +147,27 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-### 4. Hedefleri Yapılandırın
+### 4. Düzenlenebilir Modda Yükleyin
+```bash
+pip install -e .
+```
+Bu komut, `config` ve `src` paketlerini kaydeder; böylece hangi dizinden çalıştırırsanız çalıştırın mutlak içe aktarımlar doğru şekilde çözümlenir.
+
+### 5. Hedefleri Yapılandırın
 `config/targets.json` dosyasını düzenleyerek hedef URL'lerinizi ve CSS seçicilerinizi ekleyin.
 
-### 5. Motoru Çalıştırın (Arka Plan)
+### 6. Motoru Çalıştırın (Arka Plan)
 ```bash
-python -m src.main_engine
+python main_engine.py
 ```
 
-### 6. Panoyu Başlatın
+### 7. Panoyu Başlatın
 ```bash
-streamlit run src/app.py
+python run_dashboard.py
 ```
+> **Not:** Doğrudan `streamlit run app.py` çağırmak yerine her zaman `run_dashboard.py` kullanın. Başlatıcı, gerekli `PYTHONPATH` ayarını otomatik olarak yapar.
 
-### 7. Testleri Çalıştırın
+### 8. Testleri Çalıştırın
 ```bash
 pytest tests/ -v
 ```

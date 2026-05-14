@@ -42,6 +42,7 @@
 | **Streamlit** | 1.30+ | Interactive web dashboard |
 | **Schedule** | 1.2+ | Lightweight task scheduling |
 | **pytest** | 8.0+ | Testing framework |
+| **pytest-mock** | 3.12+ | Mock utilities for pytest |
 | **responses** | 0.25+ | HTTP response mocking for tests |
 
 ---
@@ -50,23 +51,32 @@
 
 ```
 ScrapeGuard/
+├── app.py                    # Streamlit dashboard (read-only viewer)
+├── main_engine.py            # Background orchestrator / scheduler
+├── run_dashboard.py          # Root launcher — sets PYTHONPATH & starts Streamlit
 ├── config/
+│   ├── __init__.py
 │   ├── targets.json          # Target URLs, CSS selectors, type rules
 │   └── settings.py           # Global configuration constants
 ├── src/
+│   ├── __init__.py
 │   ├── core/
+│   │   ├── __init__.py
 │   │   ├── scraper.py        # HTTP fetch + CSS extraction engine
 │   │   ├── validator.py      # Pydantic validation checkpoint
 │   │   └── logger.py         # Loguru rotation/retention setup
-│   ├── schemas/
-│   │   └── base.py           # Dynamic Pydantic model factory
-│   ├── app.py                # Streamlit dashboard (read-only viewer)
-│   └── main_engine.py        # Background orchestrator / scheduler
+│   └── schemas/
+│       ├── __init__.py
+│       └── base.py           # Dynamic Pydantic model factory
 ├── tests/
+│   ├── __init__.py
 │   ├── test_scraper.py       # Scraper unit tests
 │   └── test_validator.py     # Validator unit tests
 ├── logs/                     # Auto-generated, git-ignored
+├── .env                      # Environment variables (git-ignored)
 ├── .gitignore
+├── pyproject.toml            # Package metadata & build config
+├── pyrightconfig.json        # Type-checker settings for IDE support
 ├── requirements.txt
 ├── README.md                 # This file
 └── README_TR.md              # Turkish documentation
@@ -78,6 +88,7 @@ ScrapeGuard/
 |---|---|
 | `main_engine.py` | Independent scheduler — runs scrape cycles in background |
 | `app.py` | Pure viewer — reads JSON results & log files from disk |
+| `run_dashboard.py` | Root launcher — ensures correct PYTHONPATH for Streamlit |
 | `validator.py` | Bridges scraper output ↔ dynamic Pydantic models |
 | `base.py` | Factory that builds Pydantic models from `targets.json` at runtime |
 
@@ -103,7 +114,7 @@ Scraper → Raw Dict → Type Coercion → Dynamic Pydantic Model → Result
 ```
 
 ### 4. Decoupled Architecture
-The engine (`main_engine.py`) writes results to `latest_results.json`. The dashboard (`app.py`) only reads this file. This ensures the UI never blocks on network I/O.
+The engine (`main_engine.py`) writes results to `latest_results.json`. The dashboard (`app.py`) only reads this file. Both live in the project root. A dedicated launcher (`run_dashboard.py`) ensures the correct `PYTHONPATH` is set so that all `config.*` and `src.*` imports resolve properly.
 
 ### 5. Log Management
 Loguru configured with **10 MB rotation** and **7-day retention**. Old logs are compressed to `.zip`. Thread-safe via `enqueue=True`.
@@ -136,20 +147,27 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-### 4. Configure Targets
+### 4. Install in Editable Mode
+```bash
+pip install -e .
+```
+This registers the `config` and `src` packages so that absolute imports work correctly regardless of which directory you run scripts from.
+
+### 5. Configure Targets
 Edit `config/targets.json` to add your target URLs and CSS selectors.
 
-### 5. Run the Engine (Background)
+### 6. Run the Engine (Background)
 ```bash
-python -m src.main_engine
+python main_engine.py
 ```
 
-### 6. Launch the Dashboard
+### 7. Launch the Dashboard
 ```bash
-streamlit run src/app.py
+python run_dashboard.py
 ```
+> **Note:** Always use `run_dashboard.py` instead of calling `streamlit run app.py` directly. The launcher sets the required `PYTHONPATH` automatically.
 
-### 7. Run Tests
+### 8. Run Tests
 ```bash
 pytest tests/ -v
 ```
